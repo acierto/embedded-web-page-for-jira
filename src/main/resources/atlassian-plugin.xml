@@ -1,0 +1,19 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}"
+    plugins-version="2">
+
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="vendor-icon">images/xlVendorIcon.png</param>
+        <param name="vendor-logo">images/xlVendorLogo.png</param>
+
+        <param name="plugin-icon">images/plugin-icon.png</param>
+        <param name="plugin-logo">images/plugin-logo.png</param>
+
+    </plugin-info>
+
+    <gadget key="embedded-webpage" name="Embedded Web Page Gadget" location="com/xebialabs/jira/plugins/embedded/embedded-webpage-gadget.xml" />
+    <resource type="download" name="thumbnail.png" location="images/thumbnail.png"/>
+
+</atlassian-plugin>

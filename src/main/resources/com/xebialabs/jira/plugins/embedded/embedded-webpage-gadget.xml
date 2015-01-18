@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+
+    <ModulePrefs title="Embedded Web Page" author="XebiaLabs" description="Displays the content of http web site as embedded content."
+            thumbnail='#staticResourceUrl("com.xebialabs.jira.plugins.embedded.jira-gadget-embedded-webpage:embedded-webpage", "thumbnail.png")'>
+
+        <Require feature="dynamic-height"/>
+        <Require feature="oauthpopup"/>
+        <Require feature="setprefs"/>
+        <Require feature="settitle"/>
+        <Require feature="views"/>
+        <Optional feature="gadget-directory">
+            <Param name="categories">
+                JIRA
+            </Param>
+        </Optional>
+
+        #oauth
+        #supportedLocales("gadget.common")
+        #supportLocales
+    </ModulePrefs>
+
+    <UserPref name="embeddedWebPageUrl" datatype="hidden" />
+    <UserPref name="height" datatype="hidden" default_value="600" />
+    <UserPref name="refreshInterval" datatype="hidden" default_value="60" />
+    <UserPref name="isConfigured" datatype="hidden" default_value="false" />
+    <UserPref name="titleOfGadget" datatype="hidden" default_value="Embedded Web Page" />
+
+    <Content type="html"><![CDATA[
+        #requireResource("com.atlassian.gadgets.publisher:ajs-gadgets")
+        #requireResource("com.atlassian.jira.gadgets:jira-global")
+        #requireResource("com.atlassian.jira.gadgets:autocomplete")
+        #includeResources()
+
+        <script type="text/javascript">
+            (function () {
+                'use strict';
+
+                var gadgetContent = 'Loading ...';
+                var windowRefresh;
+
+                function refreshContent() {
+                    'use strict';
+                    var contentFrame = document.createElement('div');
+                    contentFrame.innerHTML = gadgetContent;
+                    try {
+                        var childNode = document.getElementById('iframePanel').childNodes[0];
+                        document.getElementById('iframePanel').removeChild(childNode);
+                    } catch (exception) {}
+                    document.getElementById('iframePanel').appendChild(contentFrame);
+                }
+
+                var gadget = AJS.Gadget({
+                    baseUrl: '__ATLASSIAN_BASE_URL__',
+                    useOauth: '/rest/gadget/1.0/currentUser',
+                    config: {
+                        descriptor: function (args) {
+                            gadgets.window.setTitle('Custom Content Configuration');
+                            if(windowRefresh !== undefined) {
+                                window.clearInterval(windowRefresh);
+                            }
+                            return {
+                                fields: [
+                                {
+                                    userpref: 'titleOfGadget',
+                                    label: 'Gadget title:',
+                                    description: "The title of gadget on the dashboard.",
+                                    type: 'text',
+                                    value: this.getPref('titleOfGadget')
+                                }, {
+                                    userpref: 'height',
+                                    label: 'Height:',
+                                    description: "Pixels/percent",
+                                    type: 'text',
+                                    value: this.getPref('height')
+                                }, {
+                                    userpref: 'refreshInterval',
+                                    label: 'Refresh interval:',
+                                    description: 'Time in seconds (0 - to not refresh).',
+                                    type: 'text',
+                                    value: this.getPref('refreshInterval')
+                                }, {
+                                    userpref: 'embeddedWebPageUrl',
+                                    label: 'URL:',
+                                    description: 'Embedded web page URL, which have to start with "http://"',
+                                    type: 'text',
+                                    value: this.getPref('embeddedWebPageUrl')
+                                },
+                                    AJS.gadget.fields.nowConfigured()]
+                            };
+                        },
+                        args: []
+                    },
+                    view: {
+                        enableReload: false,
+                        onResizeReload: true,
+                        template: function (args) {
+                            var gadget, content, refreshInterval, iframeUrl;
+
+                            refreshInterval = parseInt(gadget.getPref('refreshInterval'), 10) * 1000;
+							gadget = this;
+
+                            content = '<div id="iframePanel"></div>';
+
+                            iframeUrl=gadget.getPref('embeddedWebPageUrl');
+                            gadgetContent = '<iframe frameborder="0" src="' + iframeUrl + '" height="' + gadget.getPref('height') + '" width="100%" />';
+
+                            gadgets.window.setTitle(gadget.getPref('titleOfGadget'));
+                            gadget.getView().html(content);
+
+                            if (windowRefresh !== undefined) {
+                                window.clearInterval(windowRefresh);
+                            }
+
+                            if (refreshInterval > 0) {
+                                windowRefresh = window.setInterval(refreshContent, refreshInterval);
+                            }
+                            refreshContent();
+                        }
+                    }
+                });
+            }());
+        </script>
+    ]]></Content>
+</Module>
+
